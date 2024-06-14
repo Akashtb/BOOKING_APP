@@ -1,0 +1,455 @@
+1.npm init --y 
+this is for initializing the package.json file
+
+2.npm i express 
+this is our framework which is used in our node.json
+
+3.import express from "express"
+const app = express()
+
+this is what we do in our do index.js 
+
+provide "type":"module" in package.json
+
+ "scripts": {
+    "start": "node index.js"
+  } 
+
+  And provide some changes in scripts also
+
+
+app.listen(8000,()=>{
+    console.log("Server is running at http://localhost:8000")
+})
+
+run the command node index.js
+
+
+Nodemon is a tool used in Node.js development to automatically restart the server whenever
+changes are detected in the source code. This eliminates the need to manually stop and restart 
+the server every time a change is made, which greatly speeds up the development process. 
+It's particularly useful during development when you're frequently making changes and want to 
+see the effects without constantly restarting the server.
+
+
+now bring a few changes again in the script section
+
+"scripts": {
+    "start": "nodemon index.js"
+  } 
+
+
+WE SHOULD INSTALL MONGO DB  for our database following step are 
+
+1.npm install mongoose
+--->Mongoose is an Object Data Modeling (ODM) library for MongoDB and Node.js.
+ It provides a higher-level abstraction for interacting with MongoDB databases compared 
+ to the native MongoDB driver, making it easier and more intuitive to work with MongoDB in Node.
+ js applications.
+
+2.create a file named called .env and paste the connection code 
+
+WHY WE ARE USING .ENV FILE 
+--->The .env file, short for "environment file," is a commonly used practice in software development,
+ particularly in web development. It's used to store configuration variables and sensitive 
+ information such as API keys, database credentials, and environment-specific settings.
+
+
+3.npm i dotenv
+--->
+dotenv is a popular npm package used in Node.js applications to load environment variables from a 
+.env file into the process.env object. It simplifies the process of managing environment variables 
+and makes it easy to access them within your Node.js application.
+
+4.import dotenv from "dotenv"
+
+5.dotenv.config()
+--->This line loads the variables from the .env file into process.env.
+
+You can access the environment variables defined in the .env file using process.env. 
+For example:
+
+const dbHost = process.env.DB_HOST;
+const dbUser = process.env.DB_USER;
+const dbPass = process.env.DB_PASS;
+
+6.import mongoose from "mongoose"
+
+const connect = async()=>{
+    try{
+        await mongoose.coonect(process.env.MONGO_DB)
+    }catch(err){
+        console.log("Error connecting to the Database",err)
+    }
+    
+}
+
+mogoose.connect()
+
+WHAT IS ASYNC AND AWAIT
+--->async and await are the features in javascript that allow you to 
+work asynchronous code in a more synchronous way like manner, making it 
+easier to write and understand asynchronous code.
+-------------
+async
+-------------
+It is keyword is used to defin an asynchronous function.
+An async functon always return a promise 
+If a function return a value 
+Promise will be resolved that value 
+If a function throw an error, the promise will be rejected with an error
+--------------------
+await
+--------------------
+Inside an async function you can use await keyword to pause the execution 
+of the function until a promise is settled(resolved or rejected).
+-----------------------------------------------------------------------------------
+
+6.mongoose.connection.on("disconected",()=>{
+    console.log("Lost connection")
+})
+
+mongoose.connected.on("connected",()>{
+    console.log("Connection is retained")
+})
+--->These event listeners are a great way to monitor the status of your MongoDB connection in your Node.js application. 
+They allow you to execute specific actions when the connection state changes.
+
+-------------------------------------------------------------------------------------
+
+You can use app.use() to mount middleware functions for specific routes or to apply middleware globally to all routes
+ in the application, depending on where you place the app.use() calls in your code.
+
+app.use("/",(req,res)=>{
+    res.send("hell first request")
+})
+
+--------------------------------------------------------------------------------------
+
+But we use a separate folders and files for each routes  so there won't be any conflict between route handlers.
+
+
+const router = express.Router()
+
+--->In Express.js, express.Router() is a class used to create modular, mountable route handlers.
+ It provides a way to organize route handlers into separate modules and then mount them at a 
+ specific path in the main Express application.
+-----------------------------------------------------------------------------------------
+//create middleware for each routes, Each route handler can be defined in its own file, 
+promoting separation of concerns and improving code readability and maintainability.
+
+
+app.use("/auth",authRoute)
+app.use('/rooms', roomsRoute)
+app.use('/hotels', hotelsRoute)
+app.use('/users', usersRoute)
+------------------------------------------------------------------------------------------
+
+// Now we have to create the schema 
+
+--> Schemas provide a structured way to define the shape of your data. They specify the fields 
+that documents in a collection can contain, along with their types and other constraints. 
+
+-->Schemas allow you to enforce validation rules on your data. You can specify constraints such as 
+required fields, data types, minimum and maximum values, regular expressions, and custom validation
+ functions
+
+
+import mongoose from "mongoose";
+
+const {Schema}=mongoose
+
+const HotelSchema = new Schema({
+    name:{
+        type:String,
+        required:true
+    },
+    type:{
+        type:String,
+        required:true
+    },
+    city:{
+        type:String,
+        required:true
+    },
+    address:{
+        type:String,
+        required:true
+    },
+    distance:{
+        type:String,
+        required:true
+    },
+    photos:{
+        type:[String]
+    },
+    desc:{
+        type:String,
+        required:true
+    },
+    rating:{
+        type:Number,
+        min:0,
+        max:5
+    },
+    room:{
+        type:[String]
+    },
+    cheapestPrice:{
+        type:Number,
+        required:true
+    },
+    featured:{
+        type:Boolean,
+        default:false
+    }
+})
+
+
+export default mongoose.model('Hotel', HotelSchema) 
+
+In route section
+
+import express from 'express'
+import Hotel from '../models/hotel.js'
+
+const router = express.Router()
+
+//create
+router.post('/',async(req,res)=>{
+    const newHotel = new Hotel(req.body)
+    //Inside the route handler, you create a new instance of the Hotel model using the data from 
+    //the request body (req.body). Then, you call the save method on that object to add it to the database.
+    try {
+        const savedHotel = await newHotel.save()
+        //save method on that object to add it to the database. If successful, 
+        //Mongoose will return an instance of res.status(200)
+        res.status(200).json(savedHotel)
+
+    } catch (error) {
+        res.status(500).json({message: error.message})
+    }
+})
+
+//update
+
+router.put('/:id',async(req,res)=>{
+    // when we are update any thing we are using put method
+    try {
+        const updatedHotel = await Hotel.findByIdAndUpdate(req.params.id,{$set:req.body},{new:true})
+        //{$set:req.body}-->It is a mongoDb method which is used to updated the current state
+        //{new:true}--> If it is not given during the stage it will only return the previous state not the updated one
+         //return the updated document
+         res.status(200).json(updatedHotel)
+    } catch (error) {
+        res.status(500).json({message: error.message})
+    }
+})
+
+export const deleteHotel = async(req, res, next) => {
+try {
+  await Hotel.findByIdAndDelete(req.params.id)
+
+  //return the updated document
+  res.status(200).json('Hotel has been deleted succefully')
+} catch (error) {
+  next(error)
+}
+}
+
+//in route file
+ 
+router.delete('/:id', deleteHotel)
+
+similar to that every routes has changed into this format
+
+export const getHotel = async(req, res, next) => {
+try {
+    const hotel = await Hotel.findById(req.params.id)
+    //return the updated document
+    res.status(200).json(hotel)
+  } catch (error) {
+    next(error)
+  }
+}
+
+router.get('/:id',getHotel)
+
+export const getAllHotel = async(req, res, next) => {
+    try {
+      const hotels = await Hotel.find()
+      //return the updated document
+      res.status(200).json(hotels)
+    } catch (error) {
+      next(error)
+    }
+}
+
+router.get('/',getAllHotel)
+
+--------------------------------------------------------------------------------
+import mongoose from 'mongoose'
+
+const { Schema } = mongoose
+
+const UserSchema = new Schema({
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false,
+  },
+},
+{timestamps:true }
+)
+
+export default mongoose.model('User', UserSchema)
+
+
+-----------------------------------------------------------------------------------
+
+npm i bcryptjs
+
+//bcryptjs is a library used for hashing passwords in Node.js. It provides a way to securely
+ hash and compare passwords, which is crucial for authentication in web applications. 
+ Here’s how you can use bcryptjs in your project:
+
+
+import User from "../models/User.js";
+import bcrypt from "bcryptjs"
+import createError from 'http-errors'
+export const register = async(req,res,next)=>{
+    try {
+        const salt = bcrypt.genSaltSync(10);
+        //The number 10 is the cost factor, which determines the complexity of the hashing algorithm.
+         A higher number increases the security by making the hashing process slower, but it also 
+         increases the computational time required.
+
+        const hash = bcrypt.hashSync(req.body.password, salt);
+        const newUser = new User({
+        username:req.body.username,
+        email:req.body.email,
+        password:hash,
+    })
+    await newUser.save()
+    res.status(201).json(newUser)
+    } catch (error) {
+        next(error)
+    }
+    
+}
+
+//login
+export const login = async(req,res,next)=>{
+    try {
+        const user= await User.findOne({username:req.body.username})
+        if(!user) return next(createError(404,"user not found!"))
+
+        const isPassword = await bcrypt.compare(req.body.password,user.password)
+        // to compare the hashed passwrd in database and user given password for login
+
+        if(!isPassword) return next(createError(400,"password is incorrect!"))
+        const { isAdmin, password, ...otherDetails } = user._doc
+        //to extract otherDetails expect isAdmin,password
+
+        res.status(200).json(user)
+    } catch (error) {
+        next(error)
+    }
+}
+
+export default router
+
+
+
+npm install jsonwebtoken
+
+jsonwebtoken is a popular library used to create and verify JSON Web Tokens (JWT) in Node.js 
+applications. JWTs are used for securely transmitting information between parties as a JSON object,
+ and they're commonly used for authentication and authorization.
+
+1.Define the JWT secret key in your .env file.
+2.Load environment variables using dotenv.config() at the beginning of your main application file.
+3.Generate the JWT token using process.env.JWT_SECRET to access the secret key.
+4.Return the token to the client upon successful login.
+
+
+HttpOnly
+------------
+The HttpOnly attribute is a flag that can be added to cookies to prevent client-side scripts from 
+accessing the cookie data. This attribute is particularly useful for enhancing security by 
+mitigating the risk of cross-site scripting (XSS) attacks. When a cookie is marked as HttpOnly,
+it is not accessible via JavaScript's document.cookie API, making it more secure for storing 
+sensitive information such as session tokens or JWTs.
+
+
+jwt.sign
+-------------
+The jwt.sign method is used to generate a JSON Web Token (JWT) based on a payload and a secret or
+ private key. The method takes several parameters, including the payload, the secret key, and
+ optional configuration options such as the token's expiration time. Here's a detailed explanation
+ of how to use jwt.sign in your application:
+
+-------------------------------------
+
+npm i cookie-parser
+-----------------------
+
+cookie-parser is a middleware for Express that helps in parsing cookies attached to client requests.
+It provides an easy way to access cookies through req.cookies and req.signedCookies
+
+1.Install and configure cookie-parser in your Express application or index page.
+.........................................................
+import cookieParser from "cookie-parser"
+app.use(cookieParser())
+..........................................................
+
+2.Set JWT token in an HTTP-only cookie upon successful login.
+..........................................................
+res.cookie('access_token', token, 
+      {
+
+        httpOnly: true,
+      })
+      .status(200)
+      .json({ otherDetails 
+
+      })
+// Now cookies are saved for future use 
+.......................................................
+
+3.Access and verify the token from cookies in your middleware.
+
+.......................................................
+import jwt from "jsonwebtoken";
+import {createError} from "../utils/error.js"
+
+export const verifyToken = (req,res,next)=>{
+    const token = req.cookies.access_token;
+    if(!token) return next(createError(401,"You are not authenticated"))
+
+        jwt.verify(token,process.env.JWT,(err,user)=>{
+            if(err) return next(createError(403,"Token is not valid!"))
+                req.user = user
+                next()
+        })
+}
+.................................................
+
+4.Protect routes by using the verifyToken middleware.
+
+router.get('/checkAuthentication',verifyToken,(req,res,next)=>{
+    res.json("hello user your are logged in")
+})
