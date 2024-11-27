@@ -43,7 +43,6 @@ export const deleteRoom = async (req, res, next) => {
     }catch(err){
       next(err)
     }
-    //return the updated document
     res.status(200).json('Room has been deleted succefully')
   } catch (error) {
     next(error)
@@ -53,7 +52,6 @@ export const deleteRoom = async (req, res, next) => {
 export const getRoom= async (req, res, next) => {
   try {
     const room = await Room.findById(req.params.id)
-    //return the updated document
     res.status(200).json(room)
   } catch (error) {
     next(error)
@@ -63,7 +61,6 @@ export const getRoom= async (req, res, next) => {
 export const getAllRooms = async (req, res, next) => {
   try {
     const rooms = await Room.find()
-    //return the updated document
     res.status(200).json(rooms)
   } catch (error) {
     next(error) 
